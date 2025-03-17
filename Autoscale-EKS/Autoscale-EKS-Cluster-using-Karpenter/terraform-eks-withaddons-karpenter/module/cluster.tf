@@ -566,16 +566,6 @@ resource "aws_ec2_tag" "cluster_security_group" {
 # Karpenter Controller
 #######################################################################################################
 
-#resource "kubernetes_namespace" "karpenter" {
-#  metadata {
-#    annotations = {
-#      name = "karpenter"
-#    }
-#    name = "karpenter"
-#  }
-#  depends_on = [aws_eks_node_group.eksnode, null_resource.kubectl]
-#}
-
 data "aws_iam_policy_document" "karpenter_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -704,12 +694,6 @@ data "aws_iam_policy_document" "karpenter_node_iam_role_policy" {
   }
 }
 
-#resource "aws_eks_access_entry" "eks_access" {
-#  cluster_name  = aws_eks_cluster.eksdemo.name
-#  principal_arn = aws_iam_role.karpenter_node_iam_role.arn
-#  type          = "EC2_LINUX"
-#}
-
 resource "aws_iam_role" "karpenter_node_iam_role" {
   assume_role_policy = data.aws_iam_policy_document.karpenter_node_iam_role_policy.json
   name               = "karpenter-eks-noderole"
@@ -740,54 +724,3 @@ resource "aws_iam_instance_profile" "karpenter_instance_profile" {
   role = aws_iam_role.karpenter_node_iam_role.name
 }
 
-###########################################################################################################
-# Install Karpenter using Helm Release 
-###########################################################################################################
-
-#data "aws_eks_cluster_auth" "eks_cluster_auth" {
-#  name = aws_eks_cluster.eksdemo.name
-#}
-
-#provider "helm" {
-#  kubernetes {
-#    host                   = aws_eks_cluster.eksdemo.endpoint
-#    cluster_ca_certificate = base64decode(aws_eks_cluster.eksdemo.certificate_authority.0.data)
-#    token                  = data.aws_eks_cluster_auth.eks_cluster_auth.token
-#  }
-#}
-
-#provider "kubectl" {
-#  host                   = aws_eks_cluster.eksdemo.endpoint
-#  cluster_ca_certificate = base64decode(aws_eks_cluster.eksdemo.certificate_authority.0.data)
-#  token                  = data.aws_eks_cluster_auth.eks_cluster_auth.token
-#  load_config_file       = false
-#}
-
-#resource "helm_release" "karpenter" {
-#  namespace = kubernetes_namespace.karpenter.id
-
-#  name       = "karpenter"
-#  repository = "https://charts.karpenter.sh"
-#  chart      = "karpenter"
-#  version    = "1.3.2"
-
-#  set {
-#    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
-#    value = aws_iam_policy.karpenter_controller_policy.arn
-#  }
-
-#  set {
-#    name  = "clusterName"
-#    value = "${var.eks_cluster}-${var.env}"
-#  }
-
-#  set {
-#    name  = "clusterEndpoint"
-#    value = aws_eks_cluster.eksdemo.endpoint
-#  }
-#  set {
-#    name  = "aws.defaultInstanceProfile"
-#    value = aws_iam_instance_profile.karpenter_instance_profile.name
-#  }
-#  depends_on = [aws_eks_node_group.eksnode, kubernetes_namespace.karpenter, null_resource.kubectl]
-#}
