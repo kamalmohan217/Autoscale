@@ -230,7 +230,7 @@ resource "azurerm_kubernetes_cluster_node_pool" "autoscale_node_pool" {
   mode                         = "User"          ### You can select between System and User
 # enable_node_public_ip = true             ###  Will be used in Public AKS Cluster.
   auto_scaling_enabled  = true
-  max_count            = 1
+  max_count            = 4
   node_count           = 1
   min_count            = 1
   max_pods             = 110
